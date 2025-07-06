@@ -71,6 +71,8 @@ class DataPrep:
         return freqs
     
     def word_vocab(self, input):
+        """ساخت یک دیکشنری از لغات و اختصاص یک شماره خاص به هر یک از آن ها"""
+        
         Vocab = {'__PAD__': 0, '__</e>__': 1, '__UNK__': 2} 
         for word in input:
             for tk_word in self.toke.do_tokenize(word) :
