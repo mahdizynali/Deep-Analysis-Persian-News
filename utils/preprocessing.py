@@ -16,8 +16,8 @@ class DataPrep:
         for file in csv_files:
             full_path = os.path.join(self.data_path, file)
             try:
-                df = pd.read_csv(full_path)
-
+                df = pd.read_csv(full_path, encoding='utf-8')
+                    
                 # فقط تایتل خبر و موضوع آن ذخیره شود
                 if 'title' in df.columns and 'category' in df.columns:
                     df = df[['title', 'category']].copy()
@@ -69,3 +69,11 @@ class DataPrep:
         #     tk.write(str(freqs) + "\n")
         #     tk.close()
         return freqs
+    
+    def word_vocab(self, input):
+        Vocab = {'__PAD__': 0, '__</e>__': 1, '__UNK__': 2} 
+        for word in input:
+            for tk_word in self.toke.do_tokenize(word) :
+                if tk_word not in Vocab: 
+                    Vocab[tk_word] = len(Vocab)
+        return Vocab

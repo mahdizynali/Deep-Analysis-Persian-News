@@ -1,4 +1,4 @@
-from config import *
+from .config import *
 
 class PersianStemmer:
     '''از این کلاس به منظور ریشه یابی کلمات استفاده می‌کنیم'''

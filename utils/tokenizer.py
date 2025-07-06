@@ -1,5 +1,5 @@
-from config import *
-from stemmer import PersianStemmer
+from .config import *
+from .stemmer import PersianStemmer
 
 class MaZe_tokenizer:
     '''کلاس توکنایزر برای حذف حروف اضافه و توکن بندی لغات'''
@@ -16,25 +16,30 @@ class MaZe_tokenizer:
 
     def remove_extras(self, text):
         '''حذف موارد اضافی مثل لینک، منشن، هشتگ و غیره'''
+    
+        text = re.sub(r'u200c', '', text)
+        text = re.sub(r'\u200c', '', text)
+
         text = re.sub(r'\$\w*', '', text)  # حذف نمادهای بورسی
         text = re.sub(r'^RT[\s]+', '', text)  # حذف متن RT
         text = re.sub(r'https?:\/\/.*[\r\n]*', '', text)  # حذف لینک‌ها
         text = re.sub(r'@\w+', '', text)  # حذف منشن‌ها
         text = re.sub(r'#', '', text)  # حذف علامت #
         text = re.sub(r'\s+', ' ', text).strip()  # حذف فاصله‌های اضافی
+        text = re.sub(r"[\"\'\[\]]", "", text) 
+        text = re.sub(r"[\.\+\\\/]", " ", text)
         return text
 
 
     def do_tokenize(self, text):
         '''توکن بندی متن با حذف موارد اضافی، استمر و فیلتر'''
+
         text = self.remove_extras(text)
         text_tokens = text.split()
         tokens_clean = []
 
         for word in text_tokens:
             
-            # word = word.strip().lower()
-
             if word in self.stopwords:
                 continue
             if word in self.punctuations:
