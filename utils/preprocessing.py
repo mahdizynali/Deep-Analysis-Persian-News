@@ -70,12 +70,25 @@ class DataPrep:
         #     tk.close()
         return freqs
     
-    def word_vocab(self, input):
+    def word_vocab(self, text : list) -> dict:
         """ساخت یک دیکشنری از لغات و اختصاص یک شماره خاص به هر یک از آن ها"""
-        
-        Vocab = {'__PAD__': 0, '__</e>__': 1, '__UNK__': 2} 
-        for word in input:
-            for tk_word in self.toke.do_tokenize(word) :
+
+        Vocab = {'__UNKOWN__': 0} 
+        for word in text:
+            for tk_word in self.toke.do_tokenize(word):
                 if tk_word not in Vocab: 
                     Vocab[tk_word] = len(Vocab)
         return Vocab
+    
+    def text_to_tensor(self, text : list, vocab : dict) -> list:
+        "تبدیل متن به یک تنسور اینتجر"
+        tensor = []
+        # for word in text:
+        #     words = self.toke.do_tokenize(word)
+        words = self.toke.do_tokenize(text)
+
+        for word in words:
+            word_ID = vocab[word] if word in vocab else 0 # لغات ناشناخته در دیکشنری 0 خواهد بود
+            tensor.append(word_ID) 
+        
+        return tensor
