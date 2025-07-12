@@ -80,10 +80,7 @@ def predict():
         predicted_category = predict(test_text, model, vocab)
         print("عنوان خبری:", predicted_category)
 
-def main(args):
-    if args == 'train':
-        trainer()
-    elif args == 'predict':
-        predict()
-    else :
-        print("Select input as train or predict !")
+if __name__ == "__main__":
+    import sys
+    cmd = sys.argv[1] if len(sys.argv) > 1 else None
+    {"train": trainer(), "predict": predict()}.get(cmd, lambda: print("❗ از 'train' یا 'predict' استفاده کنید."))()
