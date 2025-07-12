@@ -25,7 +25,9 @@ class DataPrep:
                     # حذف عنوانین اضافه و داده‌های نامعتبر
                     df = df[df['category'] != 'عکس']
                     df = df.dropna(subset=['title', 'category'])
-                    
+
+                    df['category'] = df['category'].replace({'بین‌_الملل': 'بین الملل',})
+
                     # پاکسازی و نرمال‌سازی دسته‌ها
                     df['category'] = df['category'].str.strip()
                     df['category'] = df['category'].map(self.categories)
@@ -92,3 +94,54 @@ class DataPrep:
             tensor.append(word_ID) 
         
         return tensor
+    
+    def Generator(self, data, labels, vocab_dict, loop=True, shuffle=True):
+        '''
+        generator برای آموزش مدل چندکلاسه
+        '''
+        per_class = BATCH_SIZE // CLASSES
+
+        # سازمان‌دهی داده‌ها بر اساس کلاس
+        data_by_class = {i: [] for i in range(CLASSES)}
+        for txt, lbl in zip(data, labels):
+            data_by_class[lbl].append(txt)
+
+        class_indices = {cls: 0 for cls in data_by_class}
+        index_lines = {cls: list(range(len(data_by_class[cls]))) for cls in data_by_class}
+
+        if shuffle:
+            for cls in index_lines:
+                rnd.shuffle(index_lines[cls])
+
+        stop = False
+        while not stop:
+            batch = []
+            target_l = []
+
+            for cls in range(CLASSES):
+                for _ in range(per_class):
+                    if class_indices[cls] >= len(data_by_class[cls]):
+                        if not loop:
+                            stop = True
+                            break
+                        class_indices[cls] = 0
+                        if shuffle:
+                            rnd.shuffle(index_lines[cls])
+
+                    txt = data_by_class[cls][index_lines[cls][class_indices[cls]]]
+                    tensor = self.text_to_tensor(txt, vocab_dict)
+                    batch.append(tensor)
+                    target_l.append(cls)
+                    class_indices[cls] += 1
+                if stop: break
+
+            if stop: break
+
+            max_len = max(len(t) for t in batch)
+            padded_batch = [t + [0]*(max_len - len(t)) for t in batch]
+
+            inputs = np.array(padded_batch)
+            targets = np.array(target_l)
+            example_weights = np.ones_like(targets)
+
+            yield inputs, targets, example_weights
