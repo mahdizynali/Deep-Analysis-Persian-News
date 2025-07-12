@@ -1,6 +1,7 @@
 from utils.config import *
 from utils.preprocessing import DataPrep
 from utils.traxNet import newsModel 
+import sys
 
 preprocess = DataPrep(DATASET_PATH)
 
@@ -82,5 +83,9 @@ def predict():
 
 if __name__ == "__main__":
     import sys
-    cmd = sys.argv[1] if len(sys.argv) > 1 else None
-    {"train": trainer(), "predict": predict()}.get(cmd, lambda: print("❗ از 'train' یا 'predict' استفاده کنید."))()
+    if len(sys.argv) > 1 and sys.argv[1] == "train":
+        trainer()
+    elif len(sys.argv) > 1 and sys.argv[1] == "predict":
+        predict()
+    else:
+        print("از 'train' یا 'predict' به عنوان ورودی استفاده کن.")
