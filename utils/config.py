@@ -3,8 +3,16 @@ import re
 import string
 import numpy as np
 import pandas as pd
+import random as rnd
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
+
+import trax
+from trax import layers as tl
+from trax.supervised import training
+
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 DATASET_PATH = "dataset"
 NUMBERS_PATH = "manipulate/numbers.txt"
@@ -35,6 +43,7 @@ Persian_categories = {
     "حوادث": 7
 }
 
-LEARNING_RATE=0.01
-CLASSES=7 
-ITRATION=1
+LEARNING_RATE = 0.001
+BATCH_SIZE = 16
+CLASSES = 8
+ITRATION = 5000
