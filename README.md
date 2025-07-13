@@ -8,16 +8,12 @@ This project performs deep natural language analysis on Persian news articles us
 - Leverage **LSTM-based deep learning models** for semantic understanding
 - Achieve strong performance benchmarks on large-scale Persian datasets
 
----
-
 ## 🚀 Key Features
 
 - 🧠 **Deep Neural Network**: LSTM-based model implemented using Trax and JAX
 - 📰 **Persian Language Support**: Tailored preprocessing and custom tokenization for Persian Lang
 - 📊 **Large Dataset**: Trained on over **200,000 news articles**
 - ✅ **High Accuracy**: Achieves **80% classification accuracy** on validation set
-
----
 
 ## 📦 Try It
 
