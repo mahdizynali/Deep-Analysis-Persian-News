@@ -1,6 +1,6 @@
 # Deep Analysis of Persian News 📰🧠🇮🇷
 
-This project performs deep natural language analysis on Persian news articles using modern neural network architectures. It leverages an LSTM-based model built with [Trax](https://github.com/google/trax) and [JAX](https://github.com/google/jax) to understand and classify the explicit content of Persian news text.
+This project performs deep natural language analysis on Persian news articles using modern neural network architectures. It leverages an LSTM-based model built with [Trax](https://github.com/google/trax) and [JAX](https://github.com/google/jax) to understand and classify the explicit content of Persian news text. Final model has been traiend on over 6 Millions parameters.
 
 ## 🔍 Project Goals
 
@@ -14,6 +14,15 @@ This project performs deep natural language analysis on Persian news articles us
 - 📰 **Persian Language Support**: Tailored preprocessing and custom tokenization for Persian Lang
 - 📊 **Large Dataset**: Trained on over **200,000 news articles**
 - ✅ **High Accuracy**: Achieves **80% classification accuracy** on validation set
+
+## Benchmark
+On first try with a simple Trax network.
+| Dataset    | Loss | Accuracy | Parameters |
+|------------|------|----------|------------|
+| Train      | 0.60223989   | 0.84375000  | 6 Millions |
+| Validation | 0.65386836   | 0.80412000  | 6 Millions |
+
+---
 
 ## 📦 Try It
 
