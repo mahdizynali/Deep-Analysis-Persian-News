@@ -58,7 +58,8 @@ def predict():
     model = newsModel(len(vocab))
     model.init_from_file('model_output/model.pkl.gz', weights_only=True)
 
-    def predict(text, model, vocab, max_len=32):
+    def predict_all_probs(text, model, vocab, max_len=32):
+        # تبدیل متن به توکن
         tokens = preprocess.text_to_tensor(text, vocab)
         if len(tokens) < max_len:
             tokens += [0] * (max_len - len(tokens))
@@ -66,20 +67,27 @@ def predict():
             tokens = tokens[:max_len]
 
         tokens_array = np.array([tokens], dtype=np.int32)
-        pred_probs = model(tokens_array)
+        log_probs = model(tokens_array)[0]  # خروجی LogSoftmax
 
-        pred_label = np.argmax(pred_probs, axis=1).item()
+        probs = np.exp(log_probs)  # تبدیل log-probabilities به probabilities
 
         label_to_category = {v: k for k, v in Persian_categories.items()}
-        return label_to_category[pred_label]
 
+        print("\nاحتمال دسته‌بندی‌ها:")
+        sorted_probs = sorted(enumerate(probs), key=lambda x: x[1], reverse=True)
+        for idx, prob in sorted_probs:
+            category = label_to_category.get(idx, f"Unknown_{idx}")
+            print(f"{category}: {prob:.4f}")
+
+        pred_label = int(np.argmax(probs))
+        return label_to_category[pred_label]
 
     while True:
         test_text = input(" جمله‌ی تستی (یا 0 برای خروج): ")
         if test_text.strip() == "0":
             break
-        predicted_category = predict(test_text, model, vocab)
-        print("عنوان خبری:", predicted_category)
+        predicted_category = predict_all_probs(test_text, model, vocab)
+        print("عنوان خبری پیش‌بینی‌شده:", predicted_category)
 
 if __name__ == "__main__":
     import sys
