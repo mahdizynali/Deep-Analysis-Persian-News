@@ -86,7 +86,7 @@ def train():
 
         print(f"[Epoch {epoch}] 🟩 Train Loss: {train_loss:.4f} | Acc: {train_acc:.4f} | 🟦 Val Loss: {val_loss:.4f} | Acc: {val_acc:.4f}")
 
-    torch.save(model.state_dict(), "news_model.pth")
+    torch.save(model.state_dict(), "model/news_model_epoch{epoch}.pth")
     return model, test_loader
 
 
