@@ -1,4 +1,4 @@
-from config import *
+from utils.config import *
 
 class newsModel(nn.Module):
     def __init__(self, vocab_size, embed_dim=128, hidden_dim=128, num_classes=CLASSES):
