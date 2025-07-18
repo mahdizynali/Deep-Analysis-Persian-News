@@ -2,7 +2,7 @@ from utils.config import *
 from utils.torchNet import newsModel 
 from utils.dataGen import NewsDataset
 from utils.preprocessing import DataPrep
-
+from utils.tokenizer import MaZe_tokenizer
 from sklearn.metrics import accuracy_score
 
 def evaluate_model(model, data_loader, criterion, device):
@@ -86,16 +86,43 @@ def train():
 
         print(f"[Epoch {epoch}] 🟩 Train Loss: {train_loss:.4f} | Acc: {train_acc:.4f} | 🟦 Val Loss: {val_loss:.4f} | Acc: {val_acc:.4f}")
 
-    torch.save(model.state_dict(), "model/news_model_epoch{epoch}.pth")
+    torch.save(model.state_dict(), "model/news_model.pth")
     return model, test_loader
 
+
+def predict(max_len=32):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = newsModel(vocab_size=len(vocab)).to(device)
+    model.load_state_dict(torch.load("model/news_model.pth", map_location=device))
+    model.eval()
+
+    label_to_category = {v: k for k, v in Persian_categories.items()}
+
+    while True:
+        text = input("جمله‌ی تستی (یا 0 برای خروج): ")
+        if text.strip() == "0":
+            break
+        tk = MaZe_tokenizer()        
+        tokens = tk.do_tokenize(text)
+        token_ids = [vocab.get(t, 0) for t in tokens][:max_len]
+        token_ids += [0] * (max_len - len(token_ids))
+        input_tensor = torch.tensor([token_ids], dtype=torch.long).to(device)
+
+        with torch.no_grad():
+            output = model(input_tensor)
+            probs = F.softmax(output, dim=1).cpu().numpy()[0]
+
+        for idx, prob in sorted(enumerate(probs), key=lambda x: x[1], reverse=True):
+            print(f"{label_to_category.get(idx, 'Unknown')} : {prob:.4f}")
+
+        print("پیش‌بینی نهایی:", label_to_category[int(np.argmax(probs))])
 
 
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "train":
         train()
-    # elif len(sys.argv) > 1 and sys.argv[1] == "predict":
-    #     predict()
+    elif len(sys.argv) > 1 and sys.argv[1] == "predict":
+        predict()
     else:
         print("از 'train' یا 'predict' به عنوان ورودی استفاده کن.")
