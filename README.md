@@ -19,8 +19,8 @@ This project performs deep natural language analysis on Persian news articles us
 On first try with a simple Trax network.
 | Dataset    | Loss | Accuracy | Parameters |
 |------------|------|----------|------------|
-| Train      | 0.60223989   | 0.84375000  | 6 Millions |
-| Validation | 0.65386836   | 0.80412000  | 6 Millions |
+| Train      | 0.60223989   | 0.84375000  | 6.2 Millions |
+| Validation | 0.65386836   | 0.80412000  | 6.2 Millions |
 
 ---
 
