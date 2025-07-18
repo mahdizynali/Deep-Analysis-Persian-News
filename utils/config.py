@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import string
 import numpy as np
 import pandas as pd
@@ -7,9 +8,12 @@ import random as rnd
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
-import trax
-from trax import layers as tl
-from trax.supervised import training
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -43,7 +47,8 @@ Persian_categories = {
     "حوادث": 7
 }
 
-LEARNING_RATE = 0.001
+LEARNING_RATE = 1e-4
 BATCH_SIZE = 16
 CLASSES = 8
-ITRATION = 3000
+ITRATION = 5000
+EPOCH = 5

@@ -44,7 +44,6 @@ class DataPrep:
         
         if not dataframes:
             raise ValueError("No valid data found in the directory")
-        
         # ترکیب و تصادفی‌سازی داده‌ها
         merged_df = pd.concat(dataframes, ignore_index=True)
         shuffled_df = merged_df.sample(frac=1, random_state=42).reset_index(drop=True)

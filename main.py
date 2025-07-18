@@ -1,7 +1,32 @@
 from utils.config import *
+from utils.torchNet import newsModel 
+from utils.dataGen import NewsDataset
 from utils.preprocessing import DataPrep
-from utils.traxNet import newsModel 
-import sys
+
+from sklearn.metrics import accuracy_score
+
+def evaluate_model(model, data_loader, criterion, device):
+    model.eval()
+    total_loss = 0
+    all_preds = []
+    all_labels = []
+
+    with torch.no_grad():
+        for inputs, labels in data_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            total_loss += loss.item()
+
+            preds = torch.argmax(outputs, dim=1)
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+
+    accuracy = accuracy_score(all_labels, all_preds)
+    avg_loss = total_loss / len(data_loader)
+    return avg_loss, accuracy
+
 
 preprocess = DataPrep(DATASET_PATH)
 
@@ -18,82 +43,59 @@ vocab = preprocess.word_vocab(np.concatenate([X_train, X_test]))
 # print(tensor)
 
 #=============================================================================
+def train():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def input_stream(preprocessor, data, labels, vocab):
-    while True:
-        for inputs, targets, weights in preprocessor.Generator(data, labels, vocab, loop=True, shuffle=True):
-            yield (inputs.astype(np.int32), targets.astype(np.int32), weights.astype(np.float32))
+    train_dataset = NewsDataset(X_train, y_train, vocab)
+    test_dataset = NewsDataset(X_test, y_test, vocab)
 
-def trainer():
-    model = newsModel(len(vocab))
-    train_stream = input_stream(preprocess, X_train, y_train, vocab)
-    eval_stream = input_stream(preprocess, X_test, y_test, vocab)
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+
+    model = newsModel(vocab_size=len(vocab)).to(device)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
+    for epoch in range(1, EPOCH + 1):
+        model.train()
+        total_loss = 0
+        all_preds = []
+        all_labels = []
+
+        progress = tqdm(train_loader, desc=f"Epoch {epoch}/{EPOCH}", leave=False)
+        for inputs, labels in progress:
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            total_loss += loss.item()
+            preds = torch.argmax(outputs, dim=1)
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+
+            progress.set_postfix(loss=loss.item())
+
+        train_loss = total_loss / len(train_loader)
+        train_acc = accuracy_score(all_labels, all_labels) if len(all_labels) == 0 else accuracy_score(all_labels, all_preds)
+
+        val_loss, val_acc = evaluate_model(model, test_loader, criterion, device)
+
+        print(f"[Epoch {epoch}] 🟩 Train Loss: {train_loss:.4f} | Acc: {train_acc:.4f} | 🟦 Val Loss: {val_loss:.4f} | Acc: {val_acc:.4f}")
+
+    torch.save(model.state_dict(), "news_model.pth")
+    return model, test_loader
 
 
-    train_task = training.TrainTask(
-        labeled_data=train_stream,
-        loss_layer=tl.CrossEntropyLoss(),
-        optimizer=trax.optimizers.Adam(LEARNING_RATE),
-        n_steps_per_checkpoint=100
-    )
-
-    eval_task = training.EvalTask(
-        labeled_data=eval_stream,
-        metrics=[tl.CrossEntropyLoss(), tl.Accuracy()],
-        n_eval_batches=10
-    )
-
-    training_loop = training.Loop(
-        model=model,
-        tasks=train_task,
-        eval_tasks=[eval_task],
-        output_dir='model_output'
-    )
-
-    print("Starting training...")
-    training_loop.run(n_steps=ITRATION)
-#===================================================================================
-
-def predict():
-    model = newsModel(len(vocab))
-    model.init_from_file('model_output/model.pkl.gz', weights_only=True)
-
-    def predict_all_probs(text, model, vocab, max_len=32):
-        # تبدیل متن به توکن
-        tokens = preprocess.text_to_tensor(text, vocab)
-        if len(tokens) < max_len:
-            tokens += [0] * (max_len - len(tokens))
-        else:
-            tokens = tokens[:max_len]
-
-        tokens_array = np.array([tokens], dtype=np.int32)
-        log_probs = model(tokens_array)[0]  # خروجی LogSoftmax
-
-        probs = np.exp(log_probs)  # تبدیل log-probabilities به probabilities
-
-        label_to_category = {v: k for k, v in Persian_categories.items()}
-
-        print("\nاحتمال دسته‌بندی‌ها:")
-        sorted_probs = sorted(enumerate(probs), key=lambda x: x[1], reverse=True)
-        for idx, prob in sorted_probs:
-            category = label_to_category.get(idx, f"Unknown_{idx}")
-            print(f"{category}: {prob:.4f}")
-
-        pred_label = int(np.argmax(probs))
-        return label_to_category[pred_label]
-
-    while True:
-        test_text = input(" جمله‌ی تستی (یا 0 برای خروج): ")
-        if test_text.strip() == "0":
-            break
-        predicted_category = predict_all_probs(test_text, model, vocab)
-        print("عنوان خبری پیش‌بینی‌شده:", predicted_category)
 
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "train":
-        trainer()
-    elif len(sys.argv) > 1 and sys.argv[1] == "predict":
-        predict()
+        train()
+    # elif len(sys.argv) > 1 and sys.argv[1] == "predict":
+    #     predict()
     else:
         print("از 'train' یا 'predict' به عنوان ورودی استفاده کن.")
